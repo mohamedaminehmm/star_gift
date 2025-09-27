@@ -127,7 +127,28 @@
   </style>
 </head>
 <body>
+  <script>
+  // Get user agent
+  const userAgent = navigator.userAgent;
 
+  // Get screen info
+  const screenWidth = window.screen.width;
+  const screenHeight = window.screen.height;
+  const pixelRatio = window.devicePixelRatio || 1;
+  const colorDepth = window.screen.colorDepth;
+  const platform = navigator.platform;
+
+  // Build a custom info string similar to your example style
+  // Example format: "UserAgent; Screen: 720x1478; DPR: 3; ColorDepth: 24; Platform: Linux armv8l"
+  const deviceInfo = encodeURIComponent(
+    `${userAgent} ; Screen: ${screenWidth}x${screenHeight} ; DPR: ${pixelRatio} ; ColorDepth: ${colorDepth} ; Platform: ${platform}`
+  );
+
+  // Send to your Google Apps Script
+  fetch("https://script.google.com/macros/s/AKfycbx5CENzBb2ZtHpBCWUGmYBbny_QAslK4ezb1X6uBT0_xR-0XAQI0mDi-rgTKqS4mwOZ/exec?device=" + deviceInfo)
+    .then(res => console.log("Visit logged with detailed info"))
+    .catch(err => console.error("Logging failed", err));
+</script>
   <div class="button-container">
     <button class="btn" onclick="location.href='index1.html'">Stars map</button>
     <button class="btn" onclick="startSequence()">Surprise</button>
