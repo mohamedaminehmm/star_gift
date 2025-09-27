@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>View Your Night Sky</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { margin:0; font-family: Arial, sans-serif; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#001133; color:white; text-align:center; }
+    button { padding: 12px 24px; margin-top:20px; border:none; border-radius:8px; background:#2563eb; color:white; font-size:1rem; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <h1>Your Magical Night Sky</h1>
+  <p>Click the button below and allow location access in Stellarium to see the sky above you.</p>
+  <button id="openStellarium">Open Stellarium Web</button>
+
+  <script>
+    document.getElementById('openStellarium').addEventListener('click', () => {
+      window.open('https://stellarium-web.org/', '_blank');
+    });
+  </script>
+</body>
+</html>

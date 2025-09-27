@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cursor Sparkle Trail</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: black;
+      font-family: Arial, sans-serif;
+      color: white;
+      overflow: hidden;
+    }
+
+    .button-container {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      gap: 60px;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .btn {
+      padding: 15px 40px;
+      font-size: 20px;
+      font-weight: bold;
+      color: white;
+      background: linear-gradient(135deg, gold, orange);
+      border: 2px solid gold;
+      border-radius: 15px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.5),
+                  0 0 20px rgba(255, 165, 0, 0.3);
+    }
+
+    .btn:hover {
+      transform: translateY(-5px) scale(1.1);
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.8),
+                  0 0 40px rgba(255, 165, 0, 0.6);
+    }
+
+    .btn:active {
+      transform: scale(0.95);
+    }
+
+    /* Overlay for fade + text */
+    #overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: black;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 200;
+      color: white;
+      font-size: 24px;
+      text-align: center;
+      padding: 0 20px;
+      pointer-events: none;
+    }
+
+    .fade-text {
+      opacity: 0;
+      transition: opacity 1s ease;
+    }
+    .fade-text.show {
+      opacity: 1;
+    }
+
+    /* Star container */
+    #star-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 100; /* above buttons but below overlay text */
+    }
+
+    .glow-point {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgb(255, 215, 0);
+      box-shadow: 0 0 1.2rem 0.6rem rgb(255, 215, 0);
+    }
+
+    .star {
+      position: absolute;
+      pointer-events: none;
+      font-size: 1.2rem;
+      animation-fill-mode: forwards;
+      opacity: 0;
+    }
+
+    @keyframes fall-1 {
+      0% { transform: translate(0,0) scale(0.3); opacity:0; }
+      10% { transform: translate(10px,-10px) scale(1); opacity:1; }
+      100% { transform: translate(25px,200px) scale(0.5); opacity:0; }
+    }
+
+    @keyframes fall-2 {
+      0% { transform: translate(0,0) scale(0.3); opacity:0; }
+      15% { transform: translate(-15px,-5px) scale(1.2); opacity:1; }
+      100% { transform: translate(-10px,180px) scale(0.3); opacity:0; }
+    }
+
+    @keyframes fall-3 {
+      0% { transform: translate(0,0) scale(0.5); opacity:0; }
+      20% { transform: translate(7px,7px) scale(1); opacity:1; }
+      100% { transform: translate(15px,150px) scale(0.4); opacity:0; }
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="button-container">
+    <button class="btn" onclick="location.href='index1.html'">Stars map</button>
+    <button class="btn" onclick="startSequence()">Surprise</button>
+  </div>
+
+  <!-- Star container -->
+  <div id="star-container"></div>
+
+  <!-- Overlay for fade + text -->
+  <div id="overlay">
+    <div id="text" class="fade-text"></div>
+  </div>
+
+  <!-- Background music -->
+  <audio id="bgmusic" src="yoursong.mp3"></audio>
+
+  <script>
+    // ============================
+    // Cursor Star Trail
+    // ============================
+
+    let last = {
+      starTimestamp: Date.now(),
+      starPosition: { x: 0, y: 0 },
+      mousePosition: { x: 0, y: 0 }
+    };
+
+    const config = {
+      starAnimationDuration: 1300,
+      minimumTimeBetweenStars: 150,
+      minimumDistanceBetweenStars: 30,
+      glowDuration: 100,
+      maximumGlowPointSpacing: 13,
+      colors: ["255 255 255", "255 223 0", "255 180 80", "255 240 150"],
+      sizes: ["1.8rem", "1.4rem", "1rem", "0.6rem"],
+      animations: ["fall-1","fall-2","fall-3"],
+      starsPerBurst: 3
+    };
+
+    let count = 0;
+    const px = v => `${v}px`;
+    const rand = (min,max) => Math.floor(Math.random()*(max-min+1))+min;
+    const selectRandom = arr => arr[rand(0,arr.length-1)];
+    const calcDistance = (a,b) => Math.hypot(b.x-a.x,b.y-a.y);
+    const starContainer = document.getElementById("star-container");
+    const append = el => starContainer.appendChild(el);
+    const remove = (el,delay) => setTimeout(()=>el.parentNode&&el.parentNode.removeChild(el), delay);
+
+    const createStar = pos => {
+      const star = document.createElement("span");
+      const color = selectRandom(config.colors);
+      star.className = "star";
+      star.textContent = "★";
+      star.style.left = px(pos.x + rand(-20,20));
+      star.style.top = px(pos.y + rand(-20,20));
+      star.style.fontSize = selectRandom(config.sizes);
+      star.style.color = `rgb(${color})`;
+      star.style.textShadow = `0 0 1.5rem rgb(${color} / 0.8)`;
+      star.style.animationName = config.animations[count++ % config.animations.length];
+      star.style.animationDuration = `${config.starAnimationDuration}ms`;
+      append(star);
+      remove(star, config.starAnimationDuration);
+    };
+
+    const createGlow = (lastPos,currentPos) => {
+      const distance = calcDistance(lastPos,currentPos);
+      const quantity = Math.max(Math.floor(distance/config.maximumGlowPointSpacing),1);
+      const dx = (currentPos.x-lastPos.x)/quantity;
+      const dy = (currentPos.y-lastPos.y)/quantity;
+
+      for(let i=0;i<quantity;i++){
+        const glow = document.createElement("div");
+        glow.className = "glow-point";
+        glow.style.left = px(lastPos.x + dx*i);
+        glow.style.top = px(lastPos.y + dy*i);
+        append(glow);
+        remove(glow,config.glowDuration);
+      }
+    };
+
+    const handleMove = e => {
+      const mouse = { x:e.clientX, y:e.clientY };
+      if(last.mousePosition.x===0 && last.mousePosition.y===0) last.mousePosition = mouse;
+
+      const now = Date.now();
+      const movedEnough = calcDistance(last.starPosition,mouse)>=config.minimumDistanceBetweenStars;
+      const timeEnough = now-last.starTimestamp>config.minimumTimeBetweenStars;
+
+      if(movedEnough||timeEnough){
+        for(let i=0;i<config.starsPerBurst;i++){
+          createStar(mouse);
+        }
+        last.starTimestamp = now;
+        last.starPosition = mouse;
+      }
+
+      createGlow(last.mousePosition,mouse);
+      last.mousePosition = mouse;
+    };
+
+    window.onmousemove = handleMove;
+    window.ontouchmove = e => handleMove(e.touches[0]);
+    document.body.onmouseleave = () => last.mousePosition={x:0,y:0};
+
+    // ============================
+    // Fade Text Sequence + Audio
+    // ============================
+    const sentences = [
+      "to the star that shine in dark , lighting everything with its presence inspiring others to strive .",
+      "you're perfect don't let others destroy that beauty reside in you .",
+      "you don't deserve the world . you deserve the heavens above . for your soul was more beautiful than the angels could describe .",
+      "your smile worth more than galaxies so please take care of yourself and don't pressure yourself too hard .",
+      "i offer you this — a worldly representation of your impact star."
+    ];
+
+    function startSequence() {
+  const overlay = document.getElementById('overlay');
+  const textEl = document.getElementById('text');
+  const audio = document.getElementById('bgmusic');
+
+  overlay.style.display = 'flex';
+
+  // Play audio now
+  audio.currentTime = 0; // start from beginning
+  audio.loop = true;
+  audio.play();
+
+  const totalTextDuration = (5000 + 1500) * sentences.length / 1000; // 32.5s
+  localStorage.setItem("audioStartTime", totalTextDuration);
+
+  let index = 0;
+
+  function showNextSentence() {
+    if (index < sentences.length) {
+      textEl.textContent = sentences[index];
+      textEl.classList.add('show');
+      setTimeout(() => {
+        textEl.classList.remove('show');
+        index++;
+        setTimeout(showNextSentence, 1500);
+      }, 5000);
+    } else {
+      // redirect after last sentence
+      window.location.href = "index2.html";
+    }
+  }
+
+  showNextSentence();
+}
+
+
+
+    // ============================
+    // Audio Resume on Page Load (index2.html)
+    // ============================
+    // 
+   localStorage.removeItem("audioStartTime");
+
+
+  </script>
+</body>
+</html>

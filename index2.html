@@ -1,0 +1,49 @@
+<!--Note:-  run this code on vs code live server or any other server -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="./style1.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galaxy</title>
+</head>
+<body>
+    <canvas class="webgl">
+       
+    </canvas>
+<audio id="bgmusic" src="yoursong.mp3"></audio>
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+  const audio = document.getElementById("bgmusic");
+
+  // Only start at 32.5s if the audio hasn't played yet
+  if (!audio.hasPlayed) {
+    audio.currentTime = 32.5; // start from 32.5 seconds
+    audio.play().catch(err => console.log("Autoplay prevented:", err));
+
+    // Mark as played
+    audio.hasPlayed = true;
+
+    // When it ends, start looping from the beginning
+    audio.onended = () => {
+      audio.currentTime = 0;
+      audio.loop = true;
+      audio.play().catch(err => console.log("Autoplay prevented:", err));
+    };
+  } else {
+    // Already played before, just loop from beginning
+    audio.currentTime = 0;
+    audio.loop = true;
+    audio.play().catch(err => console.log("Autoplay prevented:", err));
+  }
+});
+</script>
+
+
+
+
+
+     <script type="module" src="script1.js"></script>
+</body>
+</html>
