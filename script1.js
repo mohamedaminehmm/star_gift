@@ -21,7 +21,7 @@ const scene = new THREE.Scene()
 
 //galaxy
 const parameters = {}
-parameters.count = 75000;
+parameters.count = 67000;
 parameters.size = 0.01;
 parameters.radius = 2.15; 
 parameters.branches = 3; 
